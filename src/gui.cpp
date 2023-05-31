@@ -30,7 +30,7 @@ void gui::Render()
 
     ImGui::TextColored(ImColor(255, 189, 0), "FishBot");
     ImGui::SameLine();
-    ImGui::TextColored(ImColor(78, 76, 82), "v1.0");
+    ImGui::TextColored(ImColor(78, 76, 82), "v1.1");
 
     ImGui::PopFont();
 
@@ -84,7 +84,7 @@ void gui::Render()
     ImGui::SameLine();
 
     if (ImGui::Button("Open Replays Folder")) {
-
+        ShellExecuteA(0, "open", "replays", 0, 0, SW_SHOWNORMAL);
     }
 
     ImGui::NewLine();
@@ -254,6 +254,14 @@ void gui::Render()
 
 
     ImGui::Checkbox("Frame Advance", &frameAdvance.enabled);
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Current key is %c", char(key_frameadvance));
+        change_key_frameadvance = true;
+    }
+    else {
+        change_key_frameadvance = false;
+    }
+
     ImGui::End();
 }
 

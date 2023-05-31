@@ -19,32 +19,6 @@ void CheckDir(string dir)
     }
 }
 
-bool IsWindows81orHigher() {
-	NTSTATUS(WINAPI * RtlGetVersion)(LPOSVERSIONINFOEXW);
-	OSVERSIONINFOEXW osInfo;
-
-	*(FARPROC*)&RtlGetVersion = GetProcAddress(GetModuleHandleA("ntdll"), "RtlGetVersion");
-
-	if (NULL != RtlGetVersion)
-	{
-		osInfo.dwOSVersionInfoSize = sizeof(osInfo);
-		RtlGetVersion(&osInfo);
-		return (osInfo.dwMajorVersion >= 6 && osInfo.dwMinorVersion >= 3) || osInfo.dwMajorVersion >= 10;
-	}
-
-	return false;
-}
-
-inline void (__thiscall* LoadingLayer_init)(cocos2d::CCLayer*, char);
-void __fastcall LoadingLayer_initHook(cocos2d::CCLayer* layer, void*, char boolean) {
-    CCLabelBMFont* label = cocos2d::CCLabelBMFont::create("zBot requires Windows 8.1 or higher. Sorry :(\nUnload zBot to use Geometry Dash", "chatfont.fnt");
-
-    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
-    label->setPosition(winSize.width / 2, winSize.height / 2);
-    label->setAlignment(kCCTextAlignmentCenter);
-    layer->addChild(label);
-}
-
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
     CheckDir("replays");
@@ -52,17 +26,12 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
     ImGuiHook::setToggleFunction([]() { gui::Toggle(); });
     if (MH_Initialize() == MH_OK)
     {
-        if (!IsWindows81orHigher()) {
-            MH_CreateHook((PVOID)(gd::base + 0x18C080), LoadingLayer_initHook, (LPVOID*)&LoadingLayer_init);
-        }
-        else {
-            ImGuiHook::Load([](void *target, void *hook, void **trampoline)
-                                { MH_CreateHook(target, hook, trampoline); });
+        ImGuiHook::Load([](void *target, void *hook, void **trampoline)
+                            { MH_CreateHook(target, hook, trampoline); });
 
-            hooks::initHooks();
-            SpeedhackAudio::init();
-            framerate::initHooks();
-        }
+        hooks::initHooks();
+        SpeedhackAudio::init();
+        framerate::initHooks();
         MH_EnableHook(MH_ALL_HOOKS);
     }
     return true;

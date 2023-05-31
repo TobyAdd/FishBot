@@ -5,11 +5,14 @@
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+int key_frameadvance = 'C';
+bool change_key_frameadvance = false;
+
 namespace hooks
 {
     bool __fastcall playLayer_initHook(gd::PlayLayer *self, int edx, gd::GJGameLevel *level)
     {
-        auto ret = playLayer_init(self, level);            
+        auto ret = playLayer_init(self, level);
         practiceFix.frame_offset = 0;
         practiceFix.clear();
         return ret;
@@ -67,7 +70,7 @@ namespace hooks
 
         bool ret = playLayer_pushButton(self, state, player);
 
-        unsigned frame = replay.get_frame();        
+        unsigned frame = replay.get_frame();
 
         if (replay.mode == record && !self->m_isDead)
             replay.handle_recording2(frame, player, true);
@@ -131,9 +134,15 @@ namespace hooks
     void __fastcall dispatchKeyboardMSGHook(void *self, void *, int key, bool down)
     {
         dispatchKeyboardMSG(self, key, down);
+        if (change_key_frameadvance && key != 'F' && key != 'R')
+        {
+            key_frameadvance = key;
+            return;
+        }
+
         auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
-        if (pl && down && key == 'C')
+        if (pl && down && key == key_frameadvance)
         {
             frameAdvance.enabled = true;
             frameAdvance.triggered = true;
@@ -162,6 +171,6 @@ namespace hooks
         MH_CreateHook((PVOID)(gd::base + 0x20D0D0), playLayer_togglePracticeHook, (LPVOID *)&playLayer_togglePractice);
         MH_CreateHook(
             (PVOID)(GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N@Z")),
-            dispatchKeyboardMSGHook, (LPVOID *)&dispatchKeyboardMSG);
+                dispatchKeyboardMSGHook, (LPVOID *)&dispatchKeyboardMSG);
     }
 }

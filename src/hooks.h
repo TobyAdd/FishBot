@@ -37,3 +37,6 @@ namespace hooks
 
     void initHooks();
 }
+
+extern int key_frameadvance;
+extern bool change_key_frameadvance;
